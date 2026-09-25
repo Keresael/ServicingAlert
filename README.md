@@ -1,51 +1,47 @@
 # 🔧 ServicingAlert
 
-Un'applicazione desktop per officine meccaniche che tiene d'occhio le
-manutenzioni di tutti i veicoli e ricorda ai clienti quando è il momento del
-tagliando — senza che qualcuno debba pensarci a mano.
+A desktop app for auto repair shops that keeps an eye on all the vehicles'
+maintenance schedules and reminds customers when it's time for a service —
+without anyone having to track it by hand.
 
-## Cosa fa
+## What it does
 
-- Tiene un **archivio dei veicoli** (cliente, targa, telaio, chilometraggio,
-  scadenze) in un database SQLite locale.
-- **Invia email di promemoria ai clienti** quando un veicolo si avvicina alla
-  scadenza, sia per tempo (es. "tra 30 giorni") sia per chilometraggio
-  (es. "sotto i 1000 km").
-- L'invio è **automatico**: un controllo in background gira ogni poche ore e
-  spedisce i promemoria dovuti, senza interazione.
-- Ha un **anti-spam** integrato: ogni cliente riceve al massimo un promemoria
-  per ciclo (cooldown configurabile), e l'invio si può disattivare per il
-  singolo veicolo.
+- Keeps a **vehicle registry** (customer, plate, VIN, mileage, due dates) in a
+  local SQLite database.
+- **Sends reminder emails to customers** when a vehicle gets close to its due
+  date — either by time (e.g. "in 30 days") or by mileage (e.g. "under 1000 km").
+- Sending is **automatic**: a background check runs every few hours and fires
+  off the reminders that are due, with no input needed.
+- Has **anti-spam** built in: each customer gets at most one reminder per cycle
+  (configurable cooldown), and sending can be disabled per vehicle.
 
-## Come funziona
+## How it works
 
-L'intera logica è locale: non c'è server, tutto gira sulla macchina
-dell'officina.
+Everything is local — there's no server, it all runs on the shop's machine.
 
-- I dati vivono in `officina.db`, un file SQLite creato automaticamente accanto
-  all'eseguibile (o nella cartella del progetto in sviluppo).
-- Un **thread in background** controlla periodicamente i veicoli: per ognuno
-  confronta la data di scadenza e i km rispetto alle soglie configurate, decide
-  se notificare e — fuori dal cooldown — invia l'email via **SMTP**. Host,
-  porta, mittente e password si impostano una volta nelle Impostazioni, con un
-  test di connessione per verificare che le credenziali siano giuste.
-- La **configurazione** (SMTP, nome officina, intervallo di controllo, cooldown)
-  è salvata in `config.ini`, sempre accanto ai dati.
-- Una **GUI** (customtkinter) raccoglie tutto: archivio, modifica rapida dei km,
-  invio manuale del promemoria, log attività e impostazioni.
+- Data lives in `officina.db`, a SQLite file created automatically next to the
+  executable (or in the project folder while developing).
+- A **background thread** periodically scans the vehicles: for each one it
+  compares the due date and mileage against the configured thresholds, decides
+  whether to notify, and — if outside the cooldown — sends the email over
+  **SMTP**. Host, port, sender and password are set once in Settings, with a
+  connection test to make sure the credentials are right.
+- **Configuration** (SMTP, shop name, check interval, cooldown) is stored in
+  `config.ini`, right next to the data.
+- A **GUI** (customtkinter) ties it all together: registry, quick mileage
+  update, manual reminder send, activity log and settings.
 
-## Un'occhiata ai moduli
+## A look at the modules
 
-| File          | Ruolo                                                        |
-|---------------|--------------------------------------------------------------|
-| `main.py`     | Avvio: inizializza database, config e GUI                    |
-| `gui.py`      | Interfaccia grafica ed eventi                                 |
-| `database.py` | SQLite: schema e operazioni sui veicoli                       |
-| `mailer.py`   | Connessione SMTP e composizione delle email                   |
-| `scheduler.py`| Thread in background che decide quando inviare                |
-| `config.py`   | Lettura/scrittura di `config.ini`                             |
-| `paths.py`    | Risolve dove stanno database e config (sviluppo / eseguibile) |
+| File           | Role                                                              |
+|----------------|-------------------------------------------------------------------|
+| `main.py`      | Startup: initializes database, config and GUI                     |
+| `gui.py`       | Graphical interface and event handling                            |
+| `database.py`  | SQLite: schema and vehicle operations                             |
+| `mailer.py`    | SMTP connection and email composition                             |
+| `scheduler.py` | Background thread that decides when to send                       |
+| `config.py`    | Reads/writes `config.ini`                                         |
+| `paths.py`     | Resolves where db and config live (development / packaged build)  |
 
-> I file `officina.db` e `config.ini` nascono autonomamente alla prima
-> esecuzione, quindi l'app si può spostare in una cartella scrivibile e
-> riparte da lì.
+> `officina.db` and `config.ini` are created by themselves on first run, so the
+> app can be moved to any writable folder and just pick up from there.
